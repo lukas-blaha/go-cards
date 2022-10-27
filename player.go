@@ -11,7 +11,7 @@ type Player struct {
 }
 
 func (p *Player) Print() {
-	fmt.Printf("%s(%d):\n", p.Name, p.Total)
+	fmt.Printf("\t%s(%d):\n", p.Name, p.Total)
 	for _, c := range p.Cards {
 		c.Show()
 	}

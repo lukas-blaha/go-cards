@@ -30,12 +30,14 @@ func (g *Game) Play() {
 	}
 	g.Dealer.Take(g.Deck.Hit(2))
 
+	g.printIntro()
+
 	for {
 		for _, p := range g.Players {
 			callClear()
 			g.printPlayers(false)
 			if !p.Out {
-				fmt.Printf("%s's call: ", p.Name)
+				fmt.Printf("\t%s's call: ", p.Name)
 				sc := bufio.NewScanner(os.Stdin)
 				for sc.Scan() {
 					if g.checkHit(sc.Text()) {
@@ -45,18 +47,18 @@ func (g *Game) Play() {
 						p.Call = "hit"
 						if p.Total > 21 {
 							p.Out = true
-							fmt.Printf("\n%s busted!\n", p.Name)
+							fmt.Printf("\n\t%s busted!\n", p.Name)
 							p.Call = "stay"
 							time.Sleep(2 * time.Second)
 						}
 						break
 					} else if strings.ToLower(sc.Text()) == "stay" || strings.ToLower(sc.Text()) == "s" {
-						fmt.Printf("\n%s calls to stand!\n", p.Name)
+						fmt.Printf("\n\t%s calls to stand!\n", p.Name)
 						p.Call = "stay"
 						break
 					} else {
-						fmt.Println("Incorrect call, you have two options: [hit/stay]")
-						fmt.Printf("%s's call: ", p.Name)
+						fmt.Printf("\tIncorrect call, you have two options: [hit/stay]\n")
+						fmt.Printf("\t%s's call: ", p.Name)
 					}
 				}
 			}
@@ -87,15 +89,15 @@ func (g *Game) final() {
 	}
 
 	if g.Dealer.Total > winner.Total && g.Dealer.Total < 21 {
-		fmt.Printf("\nHouse wins the game!\n")
+		fmt.Printf("\n\tHouse wins the game!\n\n")
 	} else if winner.Total == draw.Total && winner.Total == g.Dealer.Total {
-		fmt.Printf("\nNo winners!\n")
+		fmt.Printf("\n\tNo winners!\n\n")
 	} else if winner.Total == g.Dealer.Total {
-		fmt.Printf("\nIt's a draw between %s and house!", winner.Name)
+		fmt.Printf("\n\tIt's a draw between %s and house!\n\n", winner.Name)
 	} else if winner.Total == draw.Total {
-		fmt.Printf("\nIt's a draw between players %s and %s!", winner.Name, draw.Name)
+		fmt.Printf("\n\tIt's a draw between players %s and %s!\n\n", winner.Name, draw.Name)
 	} else {
-		fmt.Printf("\n%s wins the game!\n", winner.Name)
+		fmt.Printf("\n\t%s wins the game!\n\n", winner.Name)
 	}
 	os.Exit(0)
 }
@@ -146,19 +148,19 @@ func (g *Game) playDealer() {
 			}
 		}
 
-		if ace {
+		if d.Total > 16 {
+			d.UpdateTotal()
+			return
+		} else if ace {
 			if d.Total+10 <= 16 {
 				d.Take(g.Deck.Hit(1))
-				fmt.Println("Dealer has to hit!")
+				fmt.Printf("\tDealer has to hit!\n")
 				time.Sleep(4 * time.Second)
 			}
 		} else if d.Total <= 16 {
 			d.Take(g.Deck.Hit(1))
-			fmt.Println("Dealer has to hit!")
+			fmt.Printf("\tDealer has to hit!\n")
 			time.Sleep(4 * time.Second)
-		} else {
-			d.UpdateTotal()
-			return
 		}
 
 		d.UpdateTotal()
@@ -176,7 +178,7 @@ func (g *Game) checkPlayers() {
 	if out == len(g.Players) {
 		callClear()
 		g.printPlayers(false)
-		fmt.Printf("\nAll players busted! House wins!\n")
+		fmt.Printf("\n\tAll players busted! House wins!\n\n")
 		os.Exit(0)
 	}
 }
@@ -207,13 +209,30 @@ func (g *Game) checkCalls() {
 	if mainCounter == 1 {
 		callClear()
 		g.printPlayers(false)
-		fmt.Printf("Last round if any of the players does not hit!\n")
+		fmt.Printf("\tLast round if any of the players does not hit!\n")
 		time.Sleep(3 * time.Second)
 	}
+}
+
+func (g *Game) printIntro() {
+	for i := 5; i > 0; i-- {
+		callClear()
+		fmt.Printf("\tWelcome to \"Go\" Blackjack\n")
+		fmt.Printf("\n\tPlayer's options:\n")
+		fmt.Printf("\t  - hit | h [number of cards]\n\t  - stay | s\n\n")
+
+		fmt.Printf("\n\n\tGames begins in %d sec\n\n", i)
+		time.Sleep(1 * time.Second)
+	}
+
+	callClear()
+	fmt.Printf("\n\n\tEnjoy the game :)\n")
+	time.Sleep(2 * time.Second)
 }
 
 func callClear() {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
+	fmt.Println()
 }
